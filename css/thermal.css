@@ -1,0 +1,123 @@
+/* ============ THERMAL RECEIPT STYLES ============ */
+@media print {
+    body * {
+        visibility: hidden;
+    }
+    
+    #receiptContent, #receiptContent * {
+        visibility: visible;
+    }
+    
+    #receiptContent {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 80mm;
+        padding: 0;
+        margin: 0;
+    }
+}
+
+.thermal-receipt {
+    font-family: 'Courier New', monospace;
+    width: 80mm;
+    padding: 8mm;
+    background: #fff;
+    color: #000;
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+.thermal-receipt .receipt-header {
+    text-align: center;
+    margin-bottom: 5mm;
+    border-bottom: 1px dashed #000;
+    padding-bottom: 4mm;
+}
+
+.thermal-receipt .receipt-header h2 {
+    font-size: 16px;
+    font-weight: bold;
+    margin: 0 0 3px 0;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.thermal-receipt .receipt-header p {
+    margin: 2px 0;
+    font-size: 11px;
+}
+
+.thermal-receipt .receipt-info {
+    margin: 4mm 0;
+    border-bottom: 1px dashed #000;
+    padding-bottom: 3mm;
+}
+
+.thermal-receipt .receipt-info p {
+    margin: 2px 0;
+    font-size: 11px;
+}
+
+.thermal-receipt .receipt-items {
+    margin: 4mm 0;
+    border-bottom: 1px dashed #000;
+    padding-bottom: 3mm;
+}
+
+.thermal-receipt .item-row {
+    display: flex;
+    justify-content: space-between;
+    margin: 3px 0;
+    font-size: 11px;
+}
+
+.thermal-receipt .item-name {
+    flex: 1;
+}
+
+.thermal-receipt .item-qty {
+    width: 20mm;
+    text-align: right;
+}
+
+.thermal-receipt .item-price {
+    width: 25mm;
+    text-align: right;
+}
+
+.thermal-receipt .receipt-totals {
+    margin: 4mm 0;
+}
+
+.thermal-receipt .total-row {
+    display: flex;
+    justify-content: space-between;
+    margin: 3px 0;
+    font-weight: bold;
+    font-size: 13px;
+}
+
+.thermal-receipt .total-row.discount {
+    font-weight: normal;
+    font-size: 11px;
+}
+
+.thermal-receipt .total-row.grand-total {
+    font-size: 16px;
+    border-top: 1px solid #000;
+    padding-top: 3mm;
+    margin-top: 3mm;
+}
+
+.thermal-receipt .receipt-footer {
+    text-align: center;
+    margin-top: 5mm;
+    border-top: 1px dashed #000;
+    padding-top: 4mm;
+    font-size: 11px;
+}
+
+.thermal-receipt .receipt-footer p {
+    margin: 2px 0;
+}
