@@ -1,15 +1,15 @@
 // ============================================
 // FIREBASE CONFIGURATION
-// Replace with your Firebase project config
+// Amisty POS - posmisty Project
 // ============================================
 
 const firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
-    authDomain: "YOUR_PROJECT.firebaseapp.com",
-    projectId: "YOUR_PROJECT_ID",
-    storageBucket: "YOUR_PROJECT.appspot.com",
-    messagingSenderId: "YOUR_SENDER_ID",
-    appId: "YOUR_APP_ID"
+    apiKey: "AIzaSyCHatngD5v8y-k4eMWDkrHgxOGNRJZz8X8",
+    authDomain: "posmisty.firebaseapp.com",
+    projectId: "posmisty",
+    storageBucket: "posmisty.firebasestorage.app",
+    messagingSenderId: "920774276098",
+    appId: "1:920774276098:web:41b5bded208bfa7678e31b"
 };
 
 // Initialize Firebase
@@ -19,13 +19,13 @@ const db = firebase.firestore();
 // Enable offline persistence
 db.enablePersistence()
     .then(() => {
-        console.log("Firebase offline persistence enabled");
+        console.log("✅ Firebase offline persistence enabled");
     })
     .catch((err) => {
         if (err.code == 'failed-precondition') {
-            console.warn("Multiple tabs open, persistence can only be enabled in one tab at a time.");
+            console.warn("⚠️ Multiple tabs open, persistence can only be enabled in one tab at a time.");
         } else if (err.code == 'unimplemented') {
-            console.warn("Browser doesn't support persistence");
+            console.warn("⚠️ Browser doesn't support persistence");
         }
     });
 
@@ -150,7 +150,7 @@ async function getSettings() {
             businessPhone: ''
         };
     } catch (error) {
-        console.error("Error getting settings:", error);
+        console.error("❌ Error getting settings:", error);
         return {
             managerPIN: 'admin123',
             sellerPIN: 'seller123',
@@ -175,7 +175,7 @@ async function initializeDefaultSettings() {
             businessPhone: '07605455312',
             createdAt: firebase.firestore.FieldValue.serverTimestamp()
         });
-        console.log("Default settings created");
+        console.log("✅ Default settings created in Firestore");
     }
 }
 
