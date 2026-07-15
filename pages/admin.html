@@ -55,27 +55,66 @@
                     <h3>Unit Pairs</h3>
                     <button class="btn btn-primary btn-sm" onclick="showUnitForm()">+ Add Pair</button>
                 </div>
-                
-                <div class="form-card" id="unitForm" style="display:none;">
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Primary Unit</label>
-                            <input type="text" id="unitName1" placeholder="e.g., Ngunia" class="input">
-                        </div>
-                        <div class="form-group">
-                            <label>Secondary Unit</label>
-                            <input type="text" id="unitName2" placeholder="e.g., Kg" class="input">
-                        </div>
-                        <div class="form-group">
-                            <label>1 <span id="unitPrev1">___</span> = <span id="unitPrev2">___</span></label>
-                            <input type="number" id="unitRatio" placeholder="100" step="0.01" class="input">
-                        </div>
-                    </div>
-                    <div class="form-actions">
-                        <button class="btn btn-primary" onclick="saveUnit()">💾 Save</button>
-                        <button class="btn btn-ghost" onclick="hideUnitForm()">Cancel</button>
-                    </div>
-                </div>
+                <div class="form-card" id="productForm" style="display:none;">
+    <div class="form-row">
+        <div class="form-group">
+            <label>Product Name *</label>
+            <input type="text" id="prodName" placeholder="e.g., Maize Meal, Laptop" class="input">
+        </div>
+        <div class="form-group">
+            <label>Category</label>
+            <select id="prodCategory" class="select">
+                <option value="">Select category</option>
+            </select>
+            <input type="text" id="prodNewCategory" placeholder="Or type new category name" class="input" style="margin-top:5px;">
+        </div>
+        <div class="form-group">
+            <label>Unit Pair (optional)</label>
+            <select id="prodUnitPair" class="select" data-ratio="1">
+                <option value="">None - Single Unit (e.g., Laptop, Phone)</option>
+            </select>
+        </div>
+    </div>
+    
+    <!-- SINGLE STOCK INPUT (shown when no unit pair selected) -->
+    <div class="form-row" id="singleStockInput">
+        <div class="form-group">
+            <label>Stock (Units)</label>
+            <input type="number" id="prodStock" placeholder="0" step="0.01" min="0" class="input">
+        </div>
+    </div>
+    
+    <!-- DUAL STOCK INPUTS (shown when unit pair selected) -->
+    <div id="dualStockInputs" style="display:none; background:#F0FDF4; border:1px solid #D1FAE5; border-radius:8px; padding:14px; margin-bottom:10px;">
+        <div class="form-row">
+            <div class="form-group">
+                <label id="stockLabel1">Stock (Primary Unit)</label>
+                <input type="number" id="prodStockPrimary" placeholder="0" step="0.01" min="0" class="input" oninput="convertStock('primary')">
+            </div>
+            <div class="form-group">
+                <label id="stockLabel2">Stock (Secondary Unit)</label>
+                <input type="number" id="prodStock" placeholder="0" step="0.01" min="0" class="input" oninput="convertStock('secondary')">
+            </div>
+        </div>
+        <small id="conversionText" style="color:#059669;font-weight:500;display:block;text-align:center;margin-top:6px;"></small>
+    </div>
+    
+    <div class="form-row" style="margin-top:10px;">
+        <div class="form-group">
+            <label id="priceLabel">Selling Price per Unit (Ksh) *</label>
+            <input type="number" id="prodSellPrice" placeholder="120" step="0.01" min="0" class="input">
+        </div>
+        <div class="form-group">
+            <label id="buyPriceLabel">Buying Price per Unit (Ksh)</label>
+            <input type="number" id="prodBuyPrice" placeholder="100" step="0.01" min="0" class="input">
+        </div>
+    </div>
+    
+    <div class="form-actions">
+        <button class="btn btn-primary" onclick="saveProduct()">💾 Save Product</button>
+        <button class="btn btn-ghost" onclick="hideProductForm()">Cancel</button>
+    </div>
+</div>
                 
                 <div class="table-wrap">
                     <table class="table">
