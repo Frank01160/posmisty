@@ -4,6 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Panel - Amisty Company</title>
+    
+    <!-- ✅ FIREBASE SDKS (MUST BE FIRST!) -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    
     <link rel="stylesheet" href="../css/style.css">
     <link rel="stylesheet" href="../css/admin.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -17,42 +22,39 @@
         </div>
         <div class="nav-actions">
             <button class="nav-btn" onclick="location.href='pos.html'">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
-                POS
+                🏪 POS
             </button>
             <button class="nav-btn" onclick="location.href='reports.html'">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-                Reports
+                📊 Reports
             </button>
             <button class="nav-btn" onclick="location.href='history.html'">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                History
+                📜 History
             </button>
-            <button class="nav-btn logout-btn" onclick="logout()">Exit</button>
+            <button class="nav-btn logout-btn" onclick="logout()">🚪 Exit</button>
         </div>
     </nav>
 
     <div class="admin-container">
         <!-- Sidebar -->
         <div class="admin-sidebar">
-            <button class="sidebar-btn active" onclick="showSection('units')">
+            <button class="sidebar-btn active" data-section="units">
                 <span>📏</span> Unit Pairs
             </button>
-            <button class="sidebar-btn" onclick="showSection('categories')">
+            <button class="sidebar-btn" data-section="categories">
                 <span>📂</span> Categories
             </button>
-            <button class="sidebar-btn" onclick="showSection('products')">
+            <button class="sidebar-btn" data-section="products">
                 <span>📦</span> Products
             </button>
-            <button class="sidebar-btn" onclick="showSection('settings')">
+            <button class="sidebar-btn" data-section="settings">
                 <span>⚙️</span> Settings
             </button>
         </div>
 
         <!-- Main Content -->
         <div class="admin-content">
-            <!-- Unit Pairs Section -->
-            <div class="admin-section active" id="unitsSection">
+            <!-- ============ UNIT PAIRS SECTION ============ -->
+            <div class="admin-section" id="unitsSection">
                 <div class="section-header">
                     <h3>📏 Unit Pairs Management</h3>
                     <button class="btn-add" onclick="showAddUnitForm()">+ Add Unit Pair</button>
@@ -62,11 +64,11 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label>Primary Unit (e.g., Ngunia, Crate)</label>
-                            <input type="text" id="unitName1" placeholder="Ngunia">
+                            <input type="text" id="unitName1" placeholder="Ngunia" oninput="updateUnitPreview()">
                         </div>
                         <div class="form-group">
                             <label>Secondary Unit (e.g., Kg, Bottles)</label>
-                            <input type="text" id="unitName2" placeholder="Kg">
+                            <input type="text" id="unitName2" placeholder="Kg" oninput="updateUnitPreview()">
                         </div>
                         <div class="form-group">
                             <label>1 <span id="unitPreview1">_____</span> = ? <span id="unitPreview2">_____</span></label>
@@ -74,7 +76,7 @@
                         </div>
                     </div>
                     <div class="form-actions">
-                        <button class="btn-login" onclick="addUnitPair()">Save Unit Pair</button>
+                        <button class="btn-login" onclick="addUnitPair()">💾 Save Unit Pair</button>
                         <button class="btn-cancel" onclick="hideAddUnitForm()">Cancel</button>
                     </div>
                 </div>
@@ -89,12 +91,14 @@
                                 <th>Actions</th>
                             </tr>
                         </thead>
-                        <tbody id="unitsTableBody"></tbody>
+                        <tbody id="unitsTableBody">
+                            <tr class="empty-row"><td colspan="4">Loading unit pairs...</td></tr>
+                        </tbody>
                     </table>
                 </div>
             </div>
 
-            <!-- Categories Section -->
+            <!-- ============ CATEGORIES SECTION ============ -->
             <div class="admin-section" id="categoriesSection" style="display:none;">
                 <div class="section-header">
                     <h3>📂 Categories Management</h3>
@@ -105,11 +109,11 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label>Category Name</label>
-                            <input type="text" id="categoryName" placeholder="e.g., Snacks, Beverages">
+                            <input type="text" id="categoryName" placeholder="e.g., Snacks, Beverages, Grains">
                         </div>
                     </div>
                     <div class="form-actions">
-                        <button class="btn-login" onclick="addCategory()">Save Category</button>
+                        <button class="btn-login" onclick="addCategory()">💾 Save Category</button>
                         <button class="btn-cancel" onclick="hideAddCategoryForm()">Cancel</button>
                     </div>
                 </div>
@@ -119,12 +123,14 @@
                         <thead>
                             <tr><th>Category Name</th><th>Products Count</th><th>Actions</th></tr>
                         </thead>
-                        <tbody id="categoriesTableBody"></tbody>
+                        <tbody id="categoriesTableBody">
+                            <tr class="empty-row"><td colspan="3">Loading categories...</td></tr>
+                        </tbody>
                     </table>
                 </div>
             </div>
 
-            <!-- Products Section -->
+            <!-- ============ PRODUCTS SECTION ============ -->
             <div class="admin-section" id="productsSection" style="display:none;">
                 <div class="section-header">
                     <h3>📦 Products Management</h3>
@@ -134,35 +140,37 @@
                 <div class="add-form" id="addProductForm" style="display:none;">
                     <div class="form-row">
                         <div class="form-group">
-                            <label>Product Name</label>
-                            <input type="text" id="productName" placeholder="Product name">
+                            <label>Product Name *</label>
+                            <input type="text" id="productName" placeholder="e.g., Rice, Soda, Cooking Oil">
                         </div>
                         <div class="form-group">
                             <label>Category</label>
                             <select id="productCategory">
-                                <option value="">Select or add new</option>
+                                <option value="">Select existing category</option>
                             </select>
-                            <input type="text" id="newCategoryInput" placeholder="Or type new category" style="margin-top:5px;">
+                            <input type="text" id="newCategoryInput" placeholder="Or type new category name" style="margin-top:5px;">
                         </div>
                         <div class="form-group">
                             <label>Unit Pair</label>
-                            <select id="productUnitPair"></select>
+                            <select id="productUnitPair">
+                                <option value="">Select unit pair</option>
+                            </select>
                         </div>
                         <div class="form-group">
-                            <label>Selling Price (Ksh) - per smallest unit</label>
-                            <input type="number" id="sellingPrice" placeholder="120" step="0.01" min="0">
+                            <label>Selling Price (Ksh) *</label>
+                            <input type="number" id="sellingPrice" placeholder="e.g., 120" step="0.01" min="0">
                         </div>
                         <div class="form-group">
-                            <label>Buying Price (Ksh) - per smallest unit</label>
-                            <input type="number" id="buyingPrice" placeholder="100" step="0.01" min="0">
+                            <label>Buying Price (Ksh) *</label>
+                            <input type="number" id="buyingPrice" placeholder="e.g., 100" step="0.01" min="0">
                         </div>
                         <div class="form-group">
-                            <label>Initial Stock (in smallest unit)</label>
-                            <input type="number" id="initialStock" placeholder="500" step="0.01" min="0">
+                            <label>Initial Stock</label>
+                            <input type="number" id="initialStock" placeholder="e.g., 500" step="0.01" min="0">
                         </div>
                     </div>
                     <div class="form-actions">
-                        <button class="btn-login" onclick="addProduct()">Save Product</button>
+                        <button class="btn-login" onclick="addProduct()">💾 Save Product</button>
                         <button class="btn-cancel" onclick="hideAddProductForm()">Cancel</button>
                     </div>
                 </div>
@@ -180,12 +188,14 @@
                                 <th>Actions</th>
                             </tr>
                         </thead>
-                        <tbody id="productsTableBody"></tbody>
+                        <tbody id="productsTableBody">
+                            <tr class="empty-row"><td colspan="7">Loading products...</td></tr>
+                        </tbody>
                     </table>
                 </div>
             </div>
 
-            <!-- Settings Section -->
+            <!-- ============ SETTINGS SECTION ============ -->
             <div class="admin-section" id="settingsSection" style="display:none;">
                 <div class="section-header">
                     <h3>⚙️ System Settings</h3>
@@ -197,18 +207,18 @@
                     </div>
                     <div class="form-group">
                         <label>Business Address</label>
-                        <input type="text" id="businessAddress" placeholder="123 Main Street">
+                        <input type="text" id="businessAddress" placeholder="123 Main Street, Nairobi">
                     </div>
                     <div class="form-group">
                         <label>Business Phone</label>
-                        <input type="text" id="businessPhone" placeholder="07XX XXX XXX">
+                        <input type="text" id="businessPhone" placeholder="07605455312">
                     </div>
                     <div class="form-group">
-                        <label>Manager PIN</label>
+                        <label>🔐 Manager PIN</label>
                         <input type="password" id="managerPIN" value="admin123">
                     </div>
                     <div class="form-group">
-                        <label>Seller PIN</label>
+                        <label>🔐 Seller PIN</label>
                         <input type="password" id="sellerPIN" value="seller123">
                     </div>
                     <button class="btn-login" onclick="saveSettings()">💾 Save Settings</button>
@@ -217,6 +227,7 @@
         </div>
     </div>
 
+    <!-- Load Firebase Config first, then Admin JS -->
     <script src="../js/firebase-config.js"></script>
     <script src="../js/admin.js"></script>
 </body>
