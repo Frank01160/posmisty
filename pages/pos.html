@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>POS - Amisty Company</title>
+    
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/pos.css">
+    <link rel="stylesheet" href="../css/thermal.css" media="print">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Animated Background -->
+    <div class="animated-bg">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+    </div>
+
+    <!-- Top Navigation -->
+    <nav class="topnav">
+        <div class="topnav-brand">
+            <span class="brand-icon">🏪</span>
+            <h2>Amisty POS</h2>
+            <span class="badge" id="userBadge">Seller</span>
+        </div>
+        <div class="topnav-links">
+            <a href="reports.html" class="topnav-link">📊 Reports</a>
+            <a href="admin.html" class="topnav-link" id="adminLink" style="display:none;">⚙️ Admin</a>
+            <a href="history.html" class="topnav-link" id="historyLink" style="display:none;">📜 History</a>
+            <button class="topnav-link btn-exit" onclick="logout()">🚪 Exit</button>
+        </div>
+    </nav>
+
+    <!-- POS Container -->
+    <div class="pos-layout">
+        <!-- Left: Products Panel -->
+        <div class="pos-panel products-panel">
+            <div class="panel-header">
+                <h3>📦 Products</h3>
+            </div>
+            
+            <!-- Search & Filter -->
+            <div class="pos-filters">
+                <input type="text" id="searchInput" placeholder="🔍 Search products..." oninput="filterProducts()" class="input">
+                <select id="categoryFilter" onchange="filterProducts()" class="select">
+                    <option value="all">📂 All Categories</option>
+                </select>
+            </div>
+            
+            <!-- Products Table -->
+            <div class="table-wrap">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th>Stock</th>
+                            <th>Price</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody id="productsBody">
+                        <tr><td colspan="4" class="empty-cell">Loading products...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Right: Basket Panel -->
+        <div class="pos-panel basket-panel">
+            <div class="panel-header">
+                <h3>🛒 Basket</h3>
+                <button class="btn btn-sm btn-ghost" onclick="clearBasket()">Clear</button>
+            </div>
+            
+            <!-- Basket Items -->
+            <div class="basket-items" id="basketItems">
+                <div class="basket-empty">
+                    <span class="empty-icon">🛒</span>
+                    <p>Basket is empty</p>
+                    <small>Click + Add on a product</small>
+                </div>
+            </div>
+            
+            <!-- Basket Summary -->
+            <div class="basket-summary">
+                <div class="summary-line">
+                    <span>Subtotal</span>
+                    <span id="subtotal">Ksh 0.00</span>
+                </div>
+                <div class="summary-line">
+                    <span>Discount (Ksh)</span>
+                    <input type="number" id="discountInput" value="0" min="0" onchange="updateTotals()" class="discount-input">
+                </div>
+                <div class="summary-line total-line">
+                    <span>TOTAL</span>
+                    <span id="totalAmount">Ksh 0.00</span>
+                </div>
+            </div>
+            
+            <button class="btn btn-success btn-block" onclick="completeSale()" id="completeBtn">
+                <span>Complete Sale</span>
+                <span id="totalBtnAmount">Ksh 0.00</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Add to Basket Modal -->
+    <div class="modal-overlay" id="addModal">
+        <div class="modal-card modal-sm">
+            <button class="modal-close" onclick="closeAddModal()">✕</button>
+            <h3 id="addModalTitle">Add Product</h3>
+            <p class="conversion-info" id="conversionInfo"></p>
+            
+            <div class="dual-input">
+                <div class="input-group">
+                    <label id="primaryLabel">Primary</label>
+                    <input type="number" id="primaryInput" placeholder="0" step="0.01" oninput="convertUnits('primary')" class="input">
+                </div>
+                <span class="dual-equals">=</span>
+                <div class="input-group">
+                    <label id="secondaryLabel">Secondary</label>
+                    <input type="number" id="secondaryInput" placeholder="0" step="0.01" oninput="convertUnits('secondary')" class="input">
+                </div>
+            </div>
+            
+            <div class="modal-actions">
+                <button class="btn btn-ghost" onclick="closeAddModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="addToBasket()">Add to Basket</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Receipt Modal -->
+    <div class="modal-overlay" id="receiptModal">
+        <div class="modal-card modal-sm">
+            <button class="modal-close" onclick="closeReceiptModal()">✕</button>
+            <div class="receipt-content" id="receiptContent"></div>
+            <div class="modal-actions">
+                <button class="btn btn-ghost" onclick="closeReceiptModal()">Close</button>
+                <button class="btn btn-primary" onclick="printReceipt()">🖨️ Print</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../js/config.js"></script>
+    <script src="../js/data.js"></script>
+    <script src="../js/pos.js"></script>
+</body>
+</html>

@@ -1,0 +1,226 @@
+/* ============================================ */
+/* REPORTS.CSS - Reports & History Styles       */
+/* Covers both reports.html and history.html    */
+/* ============================================ */
+
+.reports-layout {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* Filter Card */
+.filter-card {
+    padding: 16px 20px;
+}
+
+.filter-row {
+    display: flex;
+    gap: 16px;
+    align-items: end;
+    flex-wrap: wrap;
+}
+
+.filter-row .form-group {
+    min-width: 140px;
+}
+
+.filter-btns {
+    flex-direction: row !important;
+    gap: 8px;
+}
+
+.export-row {
+    display: flex;
+    gap: 10px;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border-light);
+    flex-wrap: wrap;
+}
+
+/* Summary Grid */
+.summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+}
+
+.summary-card {
+    background: white;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    padding: 20px;
+    text-align: center;
+    box-shadow: var(--shadow);
+    transition: var(--transition);
+}
+
+.summary-card:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+}
+
+.summary-label {
+    display: block;
+    font-size: 0.8rem;
+    color: var(--text-light);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+}
+
+.summary-value {
+    display: block;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text);
+}
+
+/* History Section Headers */
+.card .panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.card .panel-header h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text);
+}
+
+/* History Tables */
+.card .table-wrap {
+    margin-top: 0;
+}
+
+.card .table td .badge-sm {
+    background: #F0FDF4;
+    color: var(--primary);
+    font-weight: 500;
+}
+
+/* Stock change type badges */
+.table td .badge-sm {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-transform: capitalize;
+}
+
+/* Performance table */
+#perfBody td {
+    vertical-align: middle;
+}
+
+#perfBody .text-green {
+    color: var(--success);
+    font-weight: 600;
+}
+
+#perfBody .text-red {
+    color: var(--danger);
+    font-weight: 600;
+}
+
+/* Profit margin column */
+#perfBody td:last-child {
+    font-weight: 500;
+}
+
+/* Filter selects in history */
+.filter-card .select {
+    min-width: 150px;
+}
+
+.filter-card .input[type="date"] {
+    min-width: 140px;
+}
+
+/* Empty states */
+.empty-cell {
+    text-align: center;
+    color: var(--text-muted);
+    padding: 40px !important;
+    font-size: 0.9rem;
+}
+
+/* ============================================ */
+/* RESPONSIVE                                   */
+/* ============================================ */
+@media (max-width: 768px) {
+    .reports-layout {
+        padding: 10px;
+        gap: 12px;
+    }
+    
+    .filter-row {
+        flex-direction: column;
+        gap: 12px;
+    }
+    
+    .filter-row .form-group {
+        min-width: 100%;
+    }
+    
+    .filter-btns {
+        flex-direction: row !important;
+        flex-wrap: wrap;
+    }
+    
+    .summary-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+    }
+    
+    .summary-value {
+        font-size: 1.2rem;
+    }
+    
+    .summary-card {
+        padding: 14px;
+    }
+    
+    .export-row {
+        flex-direction: column;
+    }
+    
+    .export-row .btn {
+        width: 100%;
+    }
+    
+    .card {
+        padding: 14px;
+    }
+    
+    .card .table th,
+    .card .table td {
+        padding: 8px 6px;
+        font-size: 0.78rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .summary-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .filter-card {
+        padding: 12px;
+    }
+    
+    .filter-row {
+        gap: 8px;
+    }
+    
+    .table-wrap {
+        overflow-x: auto;
+    }
+}

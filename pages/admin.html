@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - Amisty Company</title>
+    
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/admin.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Animated Background -->
+    <div class="animated-bg">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+    </div>
+
+    <!-- Top Navigation -->
+    <nav class="topnav">
+        <div class="topnav-brand">
+            <span class="brand-icon">⚙️</span>
+            <h2>Admin Panel</h2>
+            <span class="badge badge-admin">Manager</span>
+        </div>
+        <div class="topnav-links">
+            <a href="pos.html" class="topnav-link">🏪 POS</a>
+            <a href="reports.html" class="topnav-link">📊 Reports</a>
+            <a href="history.html" class="topnav-link">📜 History</a>
+            <button class="topnav-link btn-exit" onclick="logout()">🚪 Exit</button>
+        </div>
+    </nav>
+
+    <!-- Admin Container -->
+    <div class="admin-layout">
+        <!-- Tab Navigation -->
+        <div class="admin-tabs">
+            <button class="tab-btn active" data-tab="units">📏 Unit Pairs</button>
+            <button class="tab-btn" data-tab="categories">📂 Categories</button>
+            <button class="tab-btn" data-tab="products">📦 Products</button>
+            <button class="tab-btn" data-tab="settings">⚙️ Settings</button>
+        </div>
+
+        <!-- Tab Content -->
+        <div class="admin-content">
+            
+            <!-- ========== UNIT PAIRS TAB ========== -->
+            <div class="tab-panel active" id="unitsPanel">
+                <div class="panel-header">
+                    <h3>Unit Pairs</h3>
+                    <button class="btn btn-primary btn-sm" onclick="showUnitForm()">+ Add Pair</button>
+                </div>
+                
+                <div class="form-card" id="unitForm" style="display:none;">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Primary Unit</label>
+                            <input type="text" id="unitName1" placeholder="e.g., Ngunia" class="input">
+                        </div>
+                        <div class="form-group">
+                            <label>Secondary Unit</label>
+                            <input type="text" id="unitName2" placeholder="e.g., Kg" class="input">
+                        </div>
+                        <div class="form-group">
+                            <label>1 <span id="unitPrev1">___</span> = <span id="unitPrev2">___</span></label>
+                            <input type="number" id="unitRatio" placeholder="100" step="0.01" class="input">
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button class="btn btn-primary" onclick="saveUnit()">💾 Save</button>
+                        <button class="btn btn-ghost" onclick="hideUnitForm()">Cancel</button>
+                    </div>
+                </div>
+                
+                <div class="table-wrap">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Primary</th>
+                                <th>Secondary</th>
+                                <th>Conversion</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody id="unitsBody">
+                            <tr><td colspan="4" class="empty-cell">No unit pairs</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- ========== CATEGORIES TAB ========== -->
+            <div class="tab-panel" id="categoriesPanel" style="display:none;">
+                <div class="panel-header">
+                    <h3>Categories</h3>
+                    <button class="btn btn-primary btn-sm" onclick="showCategoryForm()">+ Add Category</button>
+                </div>
+                
+                <div class="form-card" id="categoryForm" style="display:none;">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Category Name</label>
+                            <input type="text" id="categoryName" placeholder="e.g., Beverages" class="input">
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button class="btn btn-primary" onclick="saveCategory()">💾 Save</button>
+                        <button class="btn btn-ghost" onclick="hideCategoryForm()">Cancel</button>
+                    </div>
+                </div>
+                
+                <div class="table-wrap">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Products</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody id="categoriesBody">
+                            <tr><td colspan="3" class="empty-cell">No categories</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- ========== PRODUCTS TAB ========== -->
+            <div class="tab-panel" id="productsPanel" style="display:none;">
+                <div class="panel-header">
+                    <h3>Products</h3>
+                    <button class="btn btn-primary btn-sm" onclick="showProductForm()">+ Add Product</button>
+                </div>
+                
+                <div class="form-card" id="productForm" style="display:none;">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Product Name *</label>
+                            <input type="text" id="prodName" placeholder="e.g., Rice" class="input">
+                        </div>
+                        <div class="form-group">
+                            <label>Category</label>
+                            <select id="prodCategory" class="select">
+                                <option value="">Select category</option>
+                            </select>
+                            <input type="text" id="prodNewCategory" placeholder="Or type new category" class="input" style="margin-top:5px;">
+                        </div>
+                        <div class="form-group">
+                            <label>Unit Pair</label>
+                            <select id="prodUnitPair" class="select">
+                                <option value="">Select (optional)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Selling Price (Ksh) *</label>
+                            <input type="number" id="prodSellPrice" placeholder="120" step="0.01" class="input">
+                        </div>
+                        <div class="form-group">
+                            <label>Buying Price (Ksh)</label>
+                            <input type="number" id="prodBuyPrice" placeholder="100" step="0.01" class="input">
+                        </div>
+                        <div class="form-group">
+                            <label>Stock</label>
+                            <input type="number" id="prodStock" placeholder="500" step="0.01" class="input">
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button class="btn btn-primary" onclick="saveProduct()">💾 Save</button>
+                        <button class="btn btn-ghost" onclick="hideProductForm()">Cancel</button>
+                    </div>
+                </div>
+                
+                <div class="table-wrap">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th>Category</th>
+                                <th>Price</th>
+                                <th>Stock</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody id="productsBody">
+                            <tr><td colspan="5" class="empty-cell">No products</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- ========== SETTINGS TAB ========== -->
+            <div class="tab-panel" id="settingsPanel" style="display:none;">
+                <div class="panel-header">
+                    <h3>System Settings</h3>
+                </div>
+                
+                <div class="settings-form">
+                    <div class="form-group">
+                        <label>Business Name</label>
+                        <input type="text" id="setBizName" class="input" value="Amisty Company">
+                    </div>
+                    <div class="form-group">
+                        <label>Address</label>
+                        <input type="text" id="setAddress" class="input" placeholder="Business address">
+                    </div>
+                    <div class="form-group">
+                        <label>Phone</label>
+                        <input type="text" id="setPhone" class="input" placeholder="07XX XXX XXX">
+                    </div>
+                    <div class="form-group">
+                        <label>🔐 Manager PIN</label>
+                        <input type="password" id="setManagerPIN" class="input" value="admin123">
+                    </div>
+                    <div class="form-group">
+                        <label>🔐 Seller PIN</label>
+                        <input type="password" id="setSellerPIN" class="input" value="seller123">
+                    </div>
+                    <button class="btn btn-primary" onclick="saveSettings()">💾 Save Settings</button>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../js/config.js"></script>
+    <script src="../js/data.js"></script>
+    <script src="../js/admin.js"></script>
+</body>
+</html>

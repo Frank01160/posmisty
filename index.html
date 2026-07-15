@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Amisty Company - POS Login</title>
+    
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Animated Background -->
+    <div class="animated-bg">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="blob blob-3"></div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="login-container">
+        <!-- Logo & Title -->
+        <div class="login-header">
+            <div class="logo-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="1" y="3" width="15" height="13"/>
+                    <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/>
+                    <circle cx="5.5" cy="18.5" r="2.5"/>
+                    <circle cx="18.5" cy="18.5" r="2.5"/>
+                </svg>
+            </div>
+            <h1 class="company-name">Amisty Company</h1>
+            <p class="tagline">Smart POS System</p>
+        </div>
+
+        <!-- Login Cards -->
+        <div class="login-cards">
+            <!-- Manager Card -->
+            <div class="login-card" onclick="selectRole('admin')">
+                <div class="card-icon manager-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                        <circle cx="12" cy="7" r="4"/>
+                    </svg>
+                </div>
+                <h3>Manager</h3>
+                <p>Full Access Control</p>
+                <span class="card-arrow">→</span>
+            </div>
+
+            <!-- Seller Card -->
+            <div class="login-card" onclick="selectRole('seller')">
+                <div class="card-icon seller-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                        <circle cx="8.5" cy="7" r="4"/>
+                        <polyline points="17 11 19 13 23 9"/>
+                    </svg>
+                </div>
+                <h3>Seller</h3>
+                <p>POS & Sales Access</p>
+                <span class="card-arrow">→</span>
+            </div>
+        </div>
+
+        <!-- Contact Info -->
+        <div class="login-footer">
+            <p class="info-text">
+                💡 Need a custom POS solution? 
+                <a href="tel:07605455312" class="phone-link">Call 0760 545 5312</a>
+            </p>
+        </div>
+    </div>
+
+    <!-- PIN Modal -->
+    <div class="modal-overlay" id="pinModal">
+        <div class="modal-card">
+            <button class="modal-close" onclick="closePinModal()">✕</button>
+            
+            <div class="modal-icon" id="modalIcon"></div>
+            <h3 id="modalTitle">Enter PIN</h3>
+            <p id="modalSubtitle" class="modal-subtitle"></p>
+            
+            <div class="pin-display">
+                <input type="password" id="pinInput" maxlength="20" placeholder="••••••••" autocomplete="off">
+            </div>
+            
+            <p class="pin-error" id="pinError"></p>
+            
+            <div class="numpad">
+                <button onclick="addDigit('1')">1</button>
+                <button onclick="addDigit('2')">2</button>
+                <button onclick="addDigit('3')">3</button>
+                <button onclick="addDigit('4')">4</button>
+                <button onclick="addDigit('5')">5</button>
+                <button onclick="addDigit('6')">6</button>
+                <button onclick="addDigit('7')">7</button>
+                <button onclick="addDigit('8')">8</button>
+                <button onclick="addDigit('9')">9</button>
+                <button onclick="clearPIN()" class="btn-numpad-clear">C</button>
+                <button onclick="addDigit('0')">0</button>
+                <button onclick="deleteDigit()" class="btn-numpad-del">⌫</button>
+            </div>
+            
+            <div class="modal-actions">
+                <button class="btn btn-ghost" onclick="closePinModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="verifyPIN()" id="loginBtn">
+                    Login →
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/config.js"></script>
+    <script src="js/data.js"></script>
+    <script src="js/auth.js"></script>
+</body>
+</html>
