@@ -1,5 +1,5 @@
 // ============================================
-// ADMIN PANEL MODULE
+// ADMIN PANEL MODULE - FULLY FIXED
 // ============================================
 
 let allUnitPairs = [];
@@ -13,7 +13,11 @@ let editingProductId = null;
 // INITIALIZE ADMIN PANEL
 // ============================================
 document.addEventListener('DOMContentLoaded', async function() {
-    if (!checkAuth()) return;
+    // Check auth first
+    if (!checkAuth()) {
+        window.location.href = '../index.html';
+        return;
+    }
     
     // Only managers can access
     if (currentUserType !== 'admin') {
@@ -22,75 +26,54 @@ document.addEventListener('DOMContentLoaded', async function() {
         return;
     }
     
+    // Setup sidebar navigation
+    setupSidebarNavigation();
+    
+    // Load all data
     await loadAllData();
-    showSection('units'); // Default section
+    
+    // Show units section by default
+    showSection('units');
     
     // Load settings
-    await loadSettings();
+    await loadSettingsData();
 });
 
 // ============================================
-// LOAD ALL DATA
+// SETUP SIDEBAR NAVIGATION
 // ============================================
-async function loadAllData() {
-    await loadUnitPairs();
-    await loadCategories();
-    await loadProducts();
-}
-
-// ============================================
-// LOAD UNIT PAIRS
-// ============================================
-async function loadUnitPairs() {
-    try {
-        const snapshot = await db.collection('unitPairs').get();
-        allUnitPairs = [];
-        snapshot.forEach(doc => {
-            allUnitPairs.push({ id: doc.id, ...doc.data() });
+function setupSidebarNavigation() {
+    const sidebarBtns = document.querySelectorAll('.sidebar-btn');
+    
+    sidebarBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const section = this.getAttribute('data-section');
+            
+            // Update active state
+            sidebarBtns.forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            
+            // Show the section
+            showSection(section);
         });
-        displayUnitPairs();
-    } catch (error) {
-        console.error("Error loading unit pairs:", error);
-    }
+    });
 }
 
 // ============================================
-// DISPLAY UNIT PAIRS
-// ============================================
-function displayUnitPairs() {
-    const tbody = document.getElementById('unitsTableBody');
-    
-    if (allUnitPairs.length === 0) {
-        tbody.innerHTML = '<tr class="empty-row"><td colspan="4">No unit pairs defined yet</td></tr>';
-        return;
-    }
-    
-    tbody.innerHTML = allUnitPairs.map(up => `
-        <tr>
-            <td><strong>${up.primaryUnit}</strong></td>
-            <td><strong>${up.secondaryUnit}</strong></td>
-            <td>1 ${up.primaryUnit} = ${up.ratio} ${up.secondaryUnit}</td>
-            <td class="action-buttons">
-                <button class="btn-edit" onclick="editUnitPair('${up.id}')">✏️ Edit</button>
-                <button class="btn-delete" onclick="deleteUnitPair('${up.id}')">🗑️ Delete</button>
-            </td>
-        </tr>
-    `).join('');
-}
-
-// ============================================
-// SHOW/HIDE SECTIONS
+// SHOW SECTION
 // ============================================
 function showSection(section) {
     // Hide all sections
-    document.querySelectorAll('.admin-section').forEach(s => s.style.display = 'none');
+    const allSections = document.querySelectorAll('.admin-section');
+    allSections.forEach(s => {
+        s.style.display = 'none';
+    });
     
-    // Show selected section
-    document.getElementById(section + 'Section').style.display = 'block';
-    
-    // Update sidebar buttons
-    document.querySelectorAll('.sidebar-btn').forEach(btn => btn.classList.remove('active'));
-    event.target.closest('.sidebar-btn').classList.add('active');
+    // Show target section
+    const targetSection = document.getElementById(section + 'Section');
+    if (targetSection) {
+        targetSection.style.display = 'block';
+    }
     
     // Hide all forms
     hideAllForms();
@@ -108,7 +91,64 @@ function hideAllForms() {
 }
 
 // ============================================
-// UNIT PAIRS - SHOW FORM
+// LOAD ALL DATA
+// ============================================
+async function loadAllData() {
+    try {
+        await loadUnitPairs();
+        await loadCategories();
+        await loadProducts();
+    } catch (error) {
+        console.error("Error loading data:", error);
+        showToast('Error loading data. Check console.', 'error');
+    }
+}
+
+// ============================================
+// LOAD UNIT PAIRS
+// ============================================
+async function loadUnitPairs() {
+    try {
+        const snapshot = await db.collection('unitPairs').get();
+        allUnitPairs = [];
+        snapshot.forEach(doc => {
+            allUnitPairs.push({ id: doc.id, ...doc.data() });
+        });
+        displayUnitPairs();
+        updateProductFormSelects();
+    } catch (error) {
+        console.error("Error loading unit pairs:", error);
+        document.getElementById('unitsTableBody').innerHTML = 
+            '<tr class="empty-row"><td colspan="4">❌ Error loading unit pairs. Check Firebase connection.</td></tr>';
+    }
+}
+
+// ============================================
+// DISPLAY UNIT PAIRS
+// ============================================
+function displayUnitPairs() {
+    const tbody = document.getElementById('unitsTableBody');
+    
+    if (!allUnitPairs || allUnitPairs.length === 0) {
+        tbody.innerHTML = '<tr class="empty-row"><td colspan="4">📏 No unit pairs defined yet. Click "+ Add Unit Pair" to create one.</td></tr>';
+        return;
+    }
+    
+    tbody.innerHTML = allUnitPairs.map(up => `
+        <tr>
+            <td><strong>${up.primaryUnit}</strong></td>
+            <td><strong>${up.secondaryUnit}</strong></td>
+            <td>1 ${up.primaryUnit} = ${up.ratio} ${up.secondaryUnit}</td>
+            <td class="action-buttons">
+                <button class="btn-edit" onclick="editUnitPair('${up.id}')">✏️</button>
+                <button class="btn-delete" onclick="deleteUnitPair('${up.id}')">🗑️</button>
+            </td>
+        </tr>
+    `).join('');
+}
+
+// ============================================
+// SHOW ADD UNIT FORM
 // ============================================
 function showAddUnitForm() {
     editingUnitId = null;
@@ -116,11 +156,8 @@ function showAddUnitForm() {
     document.getElementById('unitName1').value = '';
     document.getElementById('unitName2').value = '';
     document.getElementById('unitRatio').value = '';
-    
-    // Update preview as user types
-    document.getElementById('unitName1').addEventListener('input', updateUnitPreview);
-    document.getElementById('unitName2').addEventListener('input', updateUnitPreview);
     updateUnitPreview();
+    document.getElementById('addUnitForm').scrollIntoView({ behavior: 'smooth' });
 }
 
 function hideAddUnitForm() {
@@ -149,7 +186,7 @@ async function addUnitPair() {
     }
     
     if (!ratio || ratio <= 0) {
-        showToast('Please enter a valid ratio', 'error');
+        showToast('Please enter a valid ratio greater than 0', 'error');
         return;
     }
     
@@ -157,28 +194,28 @@ async function addUnitPair() {
         if (editingUnitId) {
             // Update existing
             await db.collection('unitPairs').doc(editingUnitId).update({
-                primaryUnit,
-                secondaryUnit,
-                ratio,
+                primaryUnit: primaryUnit,
+                secondaryUnit: secondaryUnit,
+                ratio: ratio,
                 updatedAt: firebase.firestore.FieldValue.serverTimestamp()
             });
-            showToast('Unit pair updated! ✓', 'success');
+            showToast('✅ Unit pair updated successfully!', 'success');
         } else {
-            // Add new
+            // Create new
             await db.collection('unitPairs').add({
-                primaryUnit,
-                secondaryUnit,
-                ratio,
+                primaryUnit: primaryUnit,
+                secondaryUnit: secondaryUnit,
+                ratio: ratio,
                 createdAt: firebase.firestore.FieldValue.serverTimestamp()
             });
-            showToast('Unit pair added! ✓', 'success');
+            showToast('✅ Unit pair added successfully!', 'success');
         }
         
         hideAddUnitForm();
         await loadUnitPairs();
     } catch (error) {
         console.error("Error saving unit pair:", error);
-        showToast('Error saving unit pair', 'error');
+        showToast('❌ Error saving unit pair: ' + error.message, 'error');
     }
 }
 
@@ -195,8 +232,6 @@ function editUnitPair(id) {
     document.getElementById('unitName2').value = unitPair.secondaryUnit;
     document.getElementById('unitRatio').value = unitPair.ratio;
     updateUnitPreview();
-    
-    // Scroll to form
     document.getElementById('addUnitForm').scrollIntoView({ behavior: 'smooth' });
 }
 
@@ -204,15 +239,15 @@ function editUnitPair(id) {
 // DELETE UNIT PAIR
 // ============================================
 async function deleteUnitPair(id) {
-    if (!confirm('Delete this unit pair? Products using it will be affected.')) return;
+    if (!confirm('⚠️ Are you sure you want to delete this unit pair?')) return;
     
     try {
         await db.collection('unitPairs').doc(id).delete();
-        showToast('Unit pair deleted', 'success');
+        showToast('✅ Unit pair deleted', 'success');
         await loadUnitPairs();
     } catch (error) {
         console.error("Error deleting unit pair:", error);
-        showToast('Error deleting unit pair', 'error');
+        showToast('❌ Error deleting unit pair', 'error');
     }
 }
 
@@ -227,9 +262,11 @@ async function loadCategories() {
             allCategories.push({ id: doc.id, ...doc.data() });
         });
         displayCategories();
-        updateCategorySelects();
+        updateProductFormSelects();
     } catch (error) {
         console.error("Error loading categories:", error);
+        document.getElementById('categoriesTableBody').innerHTML = 
+            '<tr class="empty-row"><td colspan="3">❌ Error loading categories</td></tr>';
     }
 }
 
@@ -239,8 +276,8 @@ async function loadCategories() {
 function displayCategories() {
     const tbody = document.getElementById('categoriesTableBody');
     
-    if (allCategories.length === 0) {
-        tbody.innerHTML = '<tr class="empty-row"><td colspan="3">No categories defined yet</td></tr>';
+    if (!allCategories || allCategories.length === 0) {
+        tbody.innerHTML = '<tr class="empty-row"><td colspan="3">📂 No categories yet. Click "+ Add Category" to create one.</td></tr>';
         return;
     }
     
@@ -248,11 +285,11 @@ function displayCategories() {
         const productCount = allProducts.filter(p => p.categoryId === cat.id).length;
         return `
             <tr>
-                <td>📂 ${cat.name}</td>
+                <td>📂 <strong>${cat.name}</strong></td>
                 <td>${productCount} products</td>
                 <td class="action-buttons">
-                    <button class="btn-edit" onclick="editCategory('${cat.id}')">✏️ Edit</button>
-                    <button class="btn-delete" onclick="deleteCategory('${cat.id}')">🗑️ Delete</button>
+                    <button class="btn-edit" onclick="editCategory('${cat.id}')">✏️</button>
+                    <button class="btn-delete" onclick="deleteCategory('${cat.id}')">🗑️</button>
                 </td>
             </tr>
         `;
@@ -266,6 +303,7 @@ function showAddCategoryForm() {
     editingCategoryId = null;
     document.getElementById('addCategoryForm').style.display = 'block';
     document.getElementById('categoryName').value = '';
+    document.getElementById('addCategoryForm').scrollIntoView({ behavior: 'smooth' });
 }
 
 function hideAddCategoryForm() {
@@ -287,23 +325,23 @@ async function addCategory() {
     try {
         if (editingCategoryId) {
             await db.collection('categories').doc(editingCategoryId).update({
-                name,
+                name: name,
                 updatedAt: firebase.firestore.FieldValue.serverTimestamp()
             });
-            showToast('Category updated! ✓', 'success');
+            showToast('✅ Category updated!', 'success');
         } else {
             await db.collection('categories').add({
-                name,
+                name: name,
                 createdAt: firebase.firestore.FieldValue.serverTimestamp()
             });
-            showToast('Category added! ✓', 'success');
+            showToast('✅ Category added!', 'success');
         }
         
         hideAddCategoryForm();
         await loadCategories();
     } catch (error) {
         console.error("Error saving category:", error);
-        showToast('Error saving category', 'error');
+        showToast('❌ Error saving category', 'error');
     }
 }
 
@@ -324,40 +362,15 @@ function editCategory(id) {
 // DELETE CATEGORY
 // ============================================
 async function deleteCategory(id) {
-    if (!confirm('Delete this category? Products in this category will become uncategorized.')) return;
+    if (!confirm('⚠️ Delete this category?')) return;
     
     try {
         await db.collection('categories').doc(id).delete();
-        showToast('Category deleted', 'success');
+        showToast('✅ Category deleted', 'success');
         await loadCategories();
     } catch (error) {
         console.error("Error deleting category:", error);
-        showToast('Error deleting category', 'error');
-    }
-}
-
-// ============================================
-// UPDATE CATEGORY SELECTS
-// ============================================
-function updateCategorySelects() {
-    const selects = ['productCategory'];
-    selects.forEach(selectId => {
-        const select = document.getElementById(selectId);
-        if (select) {
-            select.innerHTML = '<option value="">Select category</option>';
-            allCategories.forEach(cat => {
-                select.innerHTML += `<option value="${cat.id}">${cat.name}</option>`;
-            });
-        }
-    });
-    
-    // Also update unit pair select
-    const unitSelect = document.getElementById('productUnitPair');
-    if (unitSelect) {
-        unitSelect.innerHTML = '<option value="">Select unit pair</option>';
-        allUnitPairs.forEach(up => {
-            unitSelect.innerHTML += `<option value="${up.id}">1 ${up.primaryUnit} = ${up.ratio} ${up.secondaryUnit}</option>`;
-        });
+        showToast('❌ Error deleting category', 'error');
     }
 }
 
@@ -372,9 +385,11 @@ async function loadProducts() {
             allProducts.push({ id: doc.id, ...doc.data() });
         });
         displayProductsAdmin();
-        updateCategorySelects();
+        updateProductFormSelects();
     } catch (error) {
         console.error("Error loading products:", error);
+        document.getElementById('productsTableBody').innerHTML = 
+            '<tr class="empty-row"><td colspan="7">❌ Error loading products</td></tr>';
     }
 }
 
@@ -384,8 +399,8 @@ async function loadProducts() {
 function displayProductsAdmin() {
     const tbody = document.getElementById('productsTableBody');
     
-    if (allProducts.length === 0) {
-        tbody.innerHTML = '<tr class="empty-row"><td colspan="7">No products added yet</td></tr>';
+    if (!allProducts || allProducts.length === 0) {
+        tbody.innerHTML = '<tr class="empty-row"><td colspan="7">📦 No products yet. Click "+ Add Product" to add one.</td></tr>';
         return;
     }
     
@@ -416,6 +431,29 @@ function displayProductsAdmin() {
 }
 
 // ============================================
+// UPDATE PRODUCT FORM SELECTS
+// ============================================
+function updateProductFormSelects() {
+    // Update category select
+    const categorySelect = document.getElementById('productCategory');
+    if (categorySelect) {
+        categorySelect.innerHTML = '<option value="">Select category</option>';
+        allCategories.forEach(cat => {
+            categorySelect.innerHTML += `<option value="${cat.id}">${cat.name}</option>`;
+        });
+    }
+    
+    // Update unit pair select
+    const unitSelect = document.getElementById('productUnitPair');
+    if (unitSelect) {
+        unitSelect.innerHTML = '<option value="">Select unit pair (optional)</option>';
+        allUnitPairs.forEach(up => {
+            unitSelect.innerHTML += `<option value="${up.id}">1 ${up.primaryUnit} = ${up.ratio} ${up.secondaryUnit}</option>`;
+        });
+    }
+}
+
+// ============================================
 // SHOW ADD PRODUCT FORM
 // ============================================
 function showAddProductForm() {
@@ -428,7 +466,7 @@ function showAddProductForm() {
     document.getElementById('sellingPrice').value = '';
     document.getElementById('buyingPrice').value = '';
     document.getElementById('initialStock').value = '';
-    updateCategorySelects();
+    updateProductFormSelects();
     document.getElementById('addProductForm').scrollIntoView({ behavior: 'smooth' });
 }
 
@@ -447,14 +485,12 @@ async function addProduct() {
     const unitPairId = document.getElementById('productUnitPair').value;
     const sellingPrice = parseFloat(document.getElementById('sellingPrice').value);
     const buyingPrice = parseFloat(document.getElementById('buyingPrice').value);
-    const stock = parseFloat(document.getElementById('initialStock').value);
+    const stock = parseFloat(document.getElementById('initialStock').value) || 0;
     
-    if (!name) { showToast('Product name required', 'error'); return; }
+    if (!name) { showToast('Product name is required', 'error'); return; }
     if (!sellingPrice || sellingPrice <= 0) { showToast('Valid selling price required', 'error'); return; }
-    if (!buyingPrice || buyingPrice < 0) { showToast('Valid buying price required', 'error'); return; }
-    if (isNaN(stock) || stock < 0) { showToast('Valid stock quantity required', 'error'); return; }
     
-    // Handle new category
+    // Handle new category creation
     if (newCategory && !categoryId) {
         try {
             const catRef = await db.collection('categories').add({
@@ -469,70 +505,34 @@ async function addProduct() {
         }
     }
     
-    if (!categoryId) {
-        showToast('Please select or create a category', 'error');
-        return;
-    }
-    
     const productData = {
-        name,
-        categoryId,
-        category: allCategories.find(c => c.id === categoryId)?.name || newCategory,
+        name: name,
+        categoryId: categoryId || null,
+        category: allCategories.find(c => c.id === categoryId)?.name || newCategory || 'Uncategorized',
         unitPairId: unitPairId || null,
-        sellingPrice,
-        buyingPrice,
-        stock,
+        sellingPrice: sellingPrice,
+        buyingPrice: buyingPrice || 0,
+        stock: stock,
         updatedAt: firebase.firestore.FieldValue.serverTimestamp()
     };
     
     try {
         if (editingProductId) {
             await db.collection('products').doc(editingProductId).update(productData);
-            
-            // Add stock change history
-            const oldProduct = allProducts.find(p => p.id === editingProductId);
-            if (oldProduct && oldProduct.stock !== stock) {
-                await db.collection('stockHistory').add({
-                    productId: editingProductId,
-                    productName: name,
-                    category: productData.category,
-                    changeType: 'adjustment',
-                    quantityChange: stock - oldProduct.stock,
-                    reason: 'Stock updated by manager',
-                    doneBy: 'admin',
-                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
-                });
-            }
-            
-            showToast('Product updated! ✓', 'success');
+            showToast('✅ Product updated!', 'success');
         } else {
-            const docRef = await db.collection('products').add({
+            await db.collection('products').add({
                 ...productData,
                 createdAt: firebase.firestore.FieldValue.serverTimestamp()
             });
-            
-            // Add initial stock history
-            if (stock > 0) {
-                await db.collection('stockHistory').add({
-                    productId: docRef.id,
-                    productName: name,
-                    category: productData.category,
-                    changeType: 'add',
-                    quantityChange: stock,
-                    reason: 'Initial stock',
-                    doneBy: 'admin',
-                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
-                });
-            }
-            
-            showToast('Product added! ✓', 'success');
+            showToast('✅ Product added!', 'success');
         }
         
         hideAddProductForm();
         await loadProducts();
     } catch (error) {
         console.error("Error saving product:", error);
-        showToast('Error saving product', 'error');
+        showToast('❌ Error saving product: ' + error.message, 'error');
     }
 }
 
@@ -547,12 +547,11 @@ function editProduct(id) {
     document.getElementById('addProductForm').style.display = 'block';
     document.getElementById('productName').value = product.name;
     document.getElementById('productCategory').value = product.categoryId || '';
-    document.getElementById('newCategoryInput').value = '';
     document.getElementById('productUnitPair').value = product.unitPairId || '';
     document.getElementById('sellingPrice').value = product.sellingPrice;
     document.getElementById('buyingPrice').value = product.buyingPrice || 0;
     document.getElementById('initialStock').value = product.stock;
-    updateCategorySelects();
+    updateProductFormSelects();
     document.getElementById('addProductForm').scrollIntoView({ behavior: 'smooth' });
 }
 
@@ -560,22 +559,22 @@ function editProduct(id) {
 // DELETE PRODUCT
 // ============================================
 async function deleteProduct(id) {
-    if (!confirm('Delete this product? This cannot be undone.')) return;
+    if (!confirm('⚠️ Delete this product? This cannot be undone.')) return;
     
     try {
         await db.collection('products').doc(id).delete();
-        showToast('Product deleted', 'success');
+        showToast('✅ Product deleted', 'success');
         await loadProducts();
     } catch (error) {
         console.error("Error deleting product:", error);
-        showToast('Error deleting product', 'error');
+        showToast('❌ Error deleting product', 'error');
     }
 }
 
 // ============================================
 // LOAD SETTINGS
 // ============================================
-async function loadSettings() {
+async function loadSettingsData() {
     try {
         const settings = await getSettings();
         document.getElementById('businessName').value = settings.businessName || 'Amisty Company';
@@ -606,16 +605,16 @@ async function saveSettings() {
     try {
         await db.collection('settings').doc('appSettings').set({
             businessName: businessName || 'Amisty Company',
-            businessAddress,
-            businessPhone,
-            managerPIN,
-            sellerPIN,
+            businessAddress: businessAddress,
+            businessPhone: businessPhone,
+            managerPIN: managerPIN,
+            sellerPIN: sellerPIN,
             updatedAt: firebase.firestore.FieldValue.serverTimestamp()
         }, { merge: true });
         
-        showToast('Settings saved! ✓', 'success');
+        showToast('✅ Settings saved successfully!', 'success');
     } catch (error) {
         console.error("Error saving settings:", error);
-        showToast('Error saving settings', 'error');
+        showToast('❌ Error saving settings: ' + error.message, 'error');
     }
 }
