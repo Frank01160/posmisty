@@ -2,6 +2,36 @@
 // POS MODULE
 // ============================================
 
+
+// ============================================
+// INITIALIZE POS
+// ============================================
+document.addEventListener('DOMContentLoaded', async function() {
+    if (!checkAuth()) return;
+    
+    // ✅ FIX: Show admin button if logged in as manager
+    if (currentUserType === 'admin') {
+        const adminBtn = document.getElementById('adminBtn');
+        if (adminBtn) {
+            adminBtn.style.display = 'flex';
+        }
+    }
+    
+    await loadCategories();
+    await loadUnitPairs();
+    await loadProducts();
+    
+    // Add event listener for discount input
+    const discountInput = document.getElementById('discountInput');
+    if (discountInput) {
+        discountInput.addEventListener('input', updateTotal);
+    }
+    
+    // Refresh products every 30 seconds
+    setInterval(loadProducts, 30000);
+});
+
+
 let products = [];
 let basket = [];
 let unitPairs = [];
