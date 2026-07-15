@@ -1,6 +1,6 @@
 // ============================================
 // REPORTS.JS - Reports & History Logic
-// Uses Data.js for all database operations
+// Works for both reports.html and history.html
 // ============================================
 
 let currentSales = [];
@@ -13,7 +13,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     // Set user badge
     const badge = document.getElementById('userBadge');
-    if (badge) badge.textContent = App.userType === 'admin' ? 'Manager' : 'Seller';
+    if (badge) {
+        badge.textContent = App.userType === 'admin' ? 'Manager' : 'Seller';
+        if (App.userType === 'admin') badge.className = 'badge badge-admin';
+    }
     
     // Show admin links for manager
     if (App.userType === 'admin') {
@@ -35,7 +38,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (histFrom) histFrom.value = getDaysAgo(30);
     if (histTo) histTo.value = today;
     
-    // Load data based on which page we're on
+    // Load based on which page we're on
     if (document.getElementById('salesBody')) {
         await loadToday();
     }
@@ -49,8 +52,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 // ============================================
-// LOAD TODAY'S SALES
+// REPORTS PAGE FUNCTIONS
 // ============================================
+
 async function loadToday() {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -59,14 +63,10 @@ async function loadToday() {
     
     document.getElementById('dateFrom').value = getToday();
     document.getElementById('dateTo').value = getToday();
-    
     currentSales = await Data.getSales(today, tomorrow);
     renderSales();
 }
 
-// ============================================
-// LOAD THIS WEEK
-// ============================================
 async function loadThisWeek() {
     const now = new Date();
     const weekAgo = new Date();
@@ -75,18 +75,13 @@ async function loadThisWeek() {
     
     document.getElementById('dateFrom').value = weekAgo.toISOString().split('T')[0];
     document.getElementById('dateTo').value = getToday();
-    
     currentSales = await Data.getSales(weekAgo, now);
     renderSales();
 }
 
-// ============================================
-// LOAD SALES WITH FILTER
-// ============================================
 async function loadSales() {
     const from = document.getElementById('dateFrom').value;
     const to = document.getElementById('dateTo').value;
-    
     if (!from || !to) return showToast('Select date range', 'error');
     
     const fromDate = new Date(from);
@@ -98,13 +93,10 @@ async function loadSales() {
     renderSales();
 }
 
-// ============================================
-// RENDER SALES TABLE
-// ============================================
 function renderSales() {
     const tbody = document.getElementById('salesBody');
+    if (!tbody) return;
     
-    // Update summary
     const totalSales = currentSales.reduce((s, sale) => s + sale.total, 0);
     const totalProfit = currentSales.reduce((s, sale) => s + (sale.totalProfit || 0), 0);
     const itemsSold = currentSales.reduce((s, sale) => 
@@ -121,10 +113,7 @@ function renderSales() {
     }
     
     tbody.innerHTML = currentSales.map(sale => {
-        const items = sale.items.map(i => 
-            `${i.productName} (${i.primaryQty?.toFixed(1) || i.quantityInSmallest})`
-        ).join(', ');
-        
+        const items = sale.items.map(i => i.productName).join(', ');
         return `
             <tr>
                 <td>${formatDateShort(sale.timestamp)}</td>
@@ -132,24 +121,22 @@ function renderSales() {
                 <td>${formatCurrency(sale.subtotal)}</td>
                 <td>${formatCurrency(sale.discount || 0)}</td>
                 <td><strong>${formatCurrency(sale.total)}</strong></td>
-                <td class="${(sale.totalProfit || 0) >= 0 ? 'text-green' : 'text-red'}">
-                    ${formatCurrency(sale.totalProfit || 0)}
-                </td>
+                <td class="${(sale.totalProfit || 0) >= 0 ? 'text-green' : 'text-red'}">${formatCurrency(sale.totalProfit || 0)}</td>
             </tr>
         `;
     }).join('');
 }
 
 // ============================================
-// EXPORT CSV
+// EXPORTS
 // ============================================
+
 function exportCSV() {
     if (!currentSales.length) return showToast('No data to export', 'error');
     
     let csv = 'Date,Items,Subtotal,Discount,Total,Profit\n';
-    
     currentSales.forEach(sale => {
-        const items = sale.items.map(i => `${i.productName} (${i.primaryQty?.toFixed(1)} ${i.primaryUnit})`).join('; ');
+        const items = sale.items.map(i => i.productName).join('; ');
         csv += `"${formatDateShort(sale.timestamp)}","${items}","${sale.subtotal}","${sale.discount || 0}","${sale.total}","${sale.totalProfit || 0}"\n`;
     });
     
@@ -158,12 +145,9 @@ function exportCSV() {
     csv += `\n"TOTAL","","","","${total}","${profit}"\n`;
     
     downloadFile(csv, `sales_report_${getToday()}.csv`, 'text/csv');
-    showToast('CSV exported!', 'success');
+    showToast('✅ CSV exported!', 'success');
 }
 
-// ============================================
-// EXPORT WORD
-// ============================================
 function exportWord() {
     if (!currentSales.length) return showToast('No data to export', 'error');
     
@@ -186,36 +170,29 @@ function exportWord() {
         </div>
         <table><tr><th>Date</th><th>Items</th><th>Total</th><th>Profit</th></tr>
         ${currentSales.map(s => `
-            <tr>
-                <td>${formatDateShort(s.timestamp)}</td>
-                <td>${s.items.map(i => i.productName).join(', ')}</td>
-                <td>${formatCurrency(s.total)}</td>
-                <td>${formatCurrency(s.totalProfit || 0)}</td>
-            </tr>
+            <tr><td>${formatDateShort(s.timestamp)}</td>
+            <td>${s.items.map(i => i.productName).join(', ')}</td>
+            <td>${formatCurrency(s.total)}</td>
+            <td>${formatCurrency(s.totalProfit || 0)}</td></tr>
         `).join('')}
         </table>
         <p style="text-align:center;margin-top:20px;color:#666">Generated by Amisty POS</p>
     </body></html>`;
     
     downloadFile(html, `sales_report_${getToday()}.doc`, 'application/msword');
-    showToast('Word document exported!', 'success');
+    showToast('✅ Word exported!', 'success');
 }
 
-// ============================================
-// DOWNLOAD HELPER
-// ============================================
 function downloadFile(content, filename, mime) {
     const blob = new Blob([content], { type: mime });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    a.click();
-    URL.revokeObjectURL(url);
+    a.href = url; a.download = filename;
+    a.click(); URL.revokeObjectURL(url);
 }
 
 // ============================================
-// ========== HISTORY PAGE FUNCTIONS ==========
+// HISTORY PAGE FUNCTIONS
 // ============================================
 
 function populateHistoryFilters() {
@@ -241,30 +218,19 @@ async function loadHistory() {
     const to = document.getElementById('histTo')?.value;
     
     const filters = {};
-    
     if (prodFilter !== 'all') filters.productId = prodFilter;
     if (catFilter !== 'all') filters.category = catFilter;
-    if (from) {
-        const d = new Date(from);
-        d.setHours(0, 0, 0, 0);
-        filters.fromDate = d;
-    }
-    if (to) {
-        const d = new Date(to);
-        d.setHours(23, 59, 59, 999);
-        filters.toDate = d;
-    }
+    if (from) { const d = new Date(from); d.setHours(0,0,0,0); filters.fromDate = d; }
+    if (to) { const d = new Date(to); d.setHours(23,59,59,999); filters.toDate = d; }
     
-    // Load stock history
     const history = await Data.getStockHistory(filters);
     renderStockHistory(history);
-    
-    // Load performance
     await loadPerformance(filters);
 }
 
 function renderStockHistory(history) {
     const tbody = document.getElementById('stockHistoryBody');
+    if (!tbody) return;
     
     if (!history.length) {
         tbody.innerHTML = '<tr><td colspan="7" class="empty-cell">No stock changes</td></tr>';
@@ -272,16 +238,15 @@ function renderStockHistory(history) {
     }
     
     tbody.innerHTML = history.slice(0, 100).map(h => {
-        const changeClass = h.quantityChange >= 0 ? 'text-green' : 'text-red';
+        const cls = h.quantityChange >= 0 ? 'text-green' : 'text-red';
         const sign = h.quantityChange >= 0 ? '+' : '';
-        
         return `
             <tr>
                 <td>${formatDateShort(h.timestamp)}</td>
                 <td><strong>${h.productName}</strong></td>
                 <td>${h.category || ''}</td>
                 <td><span class="badge-sm">${h.changeType}</span></td>
-                <td class="${changeClass}">${sign}${h.quantityChange}</td>
+                <td class="${cls}">${sign}${h.quantityChange}</td>
                 <td>${h.reason || ''}</td>
                 <td>${h.doneBy}</td>
             </tr>
@@ -290,10 +255,11 @@ function renderStockHistory(history) {
 }
 
 async function loadPerformance(filters) {
-    // Get all sales for performance
+    const tbody = document.getElementById('perfBody');
+    if (!tbody) return;
+    
     const sales = await Data.getSales(filters.fromDate, filters.toDate);
     
-    // Aggregate by product
     const perfMap = {};
     sales.forEach(sale => {
         sale.items.forEach(item => {
@@ -308,12 +274,7 @@ async function loadPerformance(filters) {
     
     const perfData = Object.entries(perfMap).map(([name, data]) => ({
         productName: name, ...data
-    }));
-    
-    // Sort by revenue
-    perfData.sort((a, b) => b.revenue - a.revenue);
-    
-    const tbody = document.getElementById('perfBody');
+    })).sort((a, b) => b.revenue - a.revenue);
     
     if (!perfData.length) {
         tbody.innerHTML = '<tr><td colspan="5" class="empty-cell">No sales data</td></tr>';
@@ -334,4 +295,4 @@ async function loadPerformance(filters) {
     }).join('');
 }
 
-console.log('✅ Reports module loaded');
+console.log('✅ Reports & History module loaded');
