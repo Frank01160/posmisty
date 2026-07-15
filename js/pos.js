@@ -145,6 +145,9 @@ function filterProducts() {
 // ============================================
 // OPEN ADD MODAL
 // ============================================
+// ============================================
+// OPEN ADD MODAL (FIXED - Handles no unit pair)
+// ============================================
 function openAddModal(productId) {
     const product = App.products.find(p => p.id === productId);
     if (!product) {
@@ -162,29 +165,54 @@ function openAddModal(productId) {
     const unitPair = App.unitPairs.find(u => u.id === product.unitPairId);
     
     if (unitPair) {
+        // ✅ Product HAS unit pair (e.g., Maize Meal: Ngunia ↔ Kg)
         currentRatio = unitPair.ratio;
         currentPrimary = unitPair.primaryUnit;
         currentSecondary = unitPair.secondaryUnit;
         
+        // Show dual input mode
+        document.getElementById('dualInputGroup').style.display = 'flex';
+        document.getElementById('singleInputGroup').style.display = 'none';
+        
         document.getElementById('primaryLabel').textContent = unitPair.primaryUnit;
         document.getElementById('secondaryLabel').textContent = unitPair.secondaryUnit;
         document.getElementById('conversionInfo').textContent = 
-            `1 ${unitPair.primaryUnit} = ${unitPair.ratio} ${unitPair.secondaryUnit}`;
+            `📐 1 ${unitPair.primaryUnit} = ${unitPair.ratio} ${unitPair.secondaryUnit}`;
+        document.getElementById('priceInfo').textContent = 
+            `Price: ${formatCurrency(product.sellingPrice)} / ${unitPair.secondaryUnit}`;
+        
+        document.getElementById('primaryInput').value = '';
+        document.getElementById('secondaryInput').value = '';
+        
     } else {
+        // ✅ Product has NO unit pair (e.g., Laptop - single unit)
         currentRatio = 1;
-        currentPrimary = 'Qty';
-        currentSecondary = 'Qty';
-        document.getElementById('primaryLabel').textContent = 'Quantity';
-        document.getElementById('secondaryLabel').textContent = 'Quantity';
-        document.getElementById('conversionInfo').textContent = '';
+        currentPrimary = 'Units';
+        currentSecondary = 'Units';
+        
+        // Show single input mode
+        document.getElementById('dualInputGroup').style.display = 'none';
+        document.getElementById('singleInputGroup').style.display = 'block';
+        
+        document.getElementById('singleUnitLabel').textContent = 'Quantity (Units)';
+        document.getElementById('conversionInfo').textContent = 'Single unit product';
+        document.getElementById('priceInfo').textContent = 
+            `Price: ${formatCurrency(product.sellingPrice)} / unit`;
+        
+        document.getElementById('singleQtyInput').value = '';
     }
     
     document.getElementById('addModalTitle').textContent = product.name;
-    document.getElementById('primaryInput').value = '';
-    document.getElementById('secondaryInput').value = '';
-    
     document.getElementById('addModal').classList.add('active');
-    setTimeout(() => document.getElementById('primaryInput').focus(), 300);
+    
+    // Focus the right input
+    setTimeout(() => {
+        if (unitPair) {
+            document.getElementById('primaryInput').focus();
+        } else {
+            document.getElementById('singleQtyInput').focus();
+        }
+    }, 300);
 }
 
 function closeAddModal() {
